@@ -61,3 +61,14 @@ class Author:
         cursor.execute("DELETE FROM authors WHERE id = ?", (self.id,))
         conn.commit()
         conn.close()
+
+    def all_articles(self):
+        """Get all articles written by this author."""
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT a.title, m.name FROM articles a
+            JOIN magazines m ON a.magazine_id = m.id
+            WHERE a.author_id = ?
+        """, (self.id,))
+        return cursor.fetchall()

@@ -44,3 +44,11 @@ class Magazine:
         cursor.execute("DELETE FROM magazines WHERE id = ?", (self.id,))
         conn.commit()
         conn.close()
+
+    def all_articles(self):
+        """Get all articles published in this magazine."""
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT title FROM articles WHERE magazine_id = ?", (self.id,))
+        return cursor.fetchall()
+

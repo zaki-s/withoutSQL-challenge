@@ -1,7 +1,10 @@
 import sys
+import sqlite3
 from models.author import Author
 from models.magazine import Magazine
 from models.article import Article
+
+DB_NAME = "articles.db"
 
 def menu():
     print("\n1. Create Author")
@@ -15,8 +18,72 @@ def menu():
     print("9. Delete Magazine")
     print("10. Update Article Title")
     print("11. Delete Article")
-    print("12. Exit")
+    print("12. List All Authors")
+    print("13. List All Magazines")
+    print("14. List All Articles")
+    print("15. Exit")
     return input("\nChoose an option: ")
+
+def get_db_connection():
+    return sqlite3.connect(DB_NAME)
+
+def list_authors():
+    print("Starting list_authors()...")  # Debugging line
+
+    try:
+        conn = sqlite3.connect("articles.db")
+        cursor = conn.cursor()
+        print("Connected to database.")  # Debugging line
+
+        cursor.execute("SELECT id, name FROM authors")
+        authors = cursor.fetchall()
+        print("Query executed.")  # Debugging line
+
+        conn.close()
+        print("Database connection closed.")  # Debugging line
+
+        if not authors:
+            print("No authors found.")
+            return
+
+        print("\nAvailable Authors:")
+        for author_id, author_name in authors:
+            print(f"{author_id} - {author_name}")
+
+    except Exception as e:
+        print(f"Error retrieving authors: {e}")
+
+
+
+def list_magazines():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM magazines")
+    magazines = cursor.fetchall()
+    conn.close()
+
+    if not magazines:
+        print("No magazines found.")
+        return
+
+    print("\nAvailable Magazines:")
+    for magazine_id, magazine_name in magazines:
+        print(f"{magazine_id} - {magazine_name}")
+
+def list_articles():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title FROM articles")
+    articles = cursor.fetchall()
+    conn.close()
+
+    if not articles:
+        print("No articles found.")
+        return
+
+    print("\nAvailable Articles:")
+    for article_id, article_title in articles:
+        print(f"{article_id} - {article_title}")
 
 def main():
     while True:
@@ -27,8 +94,6 @@ def main():
             if name:
                 author = Author.create(name)
                 print(f"Created author: {author.name} (ID: {author.id})")
-            else:
-                print("Invalid input.")
 
         elif choice == "2":
             name = input("Enter magazine name: ").strip()
@@ -36,8 +101,6 @@ def main():
             if name and category:
                 magazine = Magazine.create(name, category)
                 print(f"Created magazine: {magazine.name} (Category: {magazine.category})")
-            else:
-                print("Invalid input.")
 
         elif choice == "3":
             title = input("Enter article title: ").strip()
@@ -63,7 +126,9 @@ def main():
                 author = Author.find_by_id(author_id)
                 if author:
                     articles = author.all_articles()
-                    print(f"Articles by {author.name}: {articles}")
+                    print(f"Articles by {author.name}:")
+                    for article in articles:
+                        print(f"- {article[0]} ({article[1]})")
                 else:
                     print("Author not found.")
             except ValueError:
@@ -78,14 +143,13 @@ def main():
                     if new_name:
                         author.update_name(new_name)
                         print(f"Updated author name to {author.name}")
-                    else:
-                        print("Invalid input.")
                 else:
                     print("Author not found.")
             except ValueError:
                 print("Invalid input. Author ID must be a number.")
 
         elif choice == "7":
+            list_authors()
             try:
                 author_id = int(input("Enter author ID to delete: "))
                 author = Author.find_by_id(author_id)
@@ -106,14 +170,13 @@ def main():
                     if new_name:
                         magazine.update_name(new_name)
                         print(f"Updated magazine name to {magazine.name}")
-                    else:
-                        print("Invalid input.")
                 else:
                     print("Magazine not found.")
             except ValueError:
                 print("Invalid input. Magazine ID must be a number.")
 
         elif choice == "9":
+            list_magazines()
             try:
                 magazine_id = int(input("Enter magazine ID to delete: "))
                 magazine = Magazine.find_by_id(magazine_id)
@@ -134,14 +197,13 @@ def main():
                     if new_title:
                         article.update_title(new_title)
                         print(f"Updated article title to {article.title}")
-                    else:
-                        print("Invalid input.")
                 else:
                     print("Article not found.")
             except ValueError:
                 print("Invalid input. Article ID must be a number.")
 
         elif choice == "11":
+            list_articles()
             try:
                 article_id = int(input("Enter article ID to delete: "))
                 article = Article.find_by_id(article_id)
@@ -154,6 +216,15 @@ def main():
                 print("Invalid input. Article ID must be a number.")
 
         elif choice == "12":
+            list_authors()
+
+        elif choice == "13":
+            list_magazines()
+
+        elif choice == "14":
+            list_articles()
+
+        elif choice == "15":
             print("Exiting CLI.")
             sys.exit()
 
